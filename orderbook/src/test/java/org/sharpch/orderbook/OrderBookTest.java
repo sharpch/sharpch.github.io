@@ -101,7 +101,7 @@ public class OrderBookTest {
 
     @Test
     public void testOrderBookIsSorted() {
-        // Create 1000 random orders with 10 different prices and 10 different sizes
+        // Create random orders with different sides, 10 different prices and 10 different sizes
         for (long id = 1; id < 10000; id++) {
             Order randomOrder = new Order(id,
                     ThreadLocalRandom.current().nextBoolean() ? 'B' : 'S',
@@ -177,7 +177,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testTotalSizeForLevel() {
+    public void testGetTotalSizeForLevel() {
         assertThrows(IllegalArgumentException.class, () -> orderBook.getTotalSizeForLevel('X', 1));
         assertThrows(IllegalArgumentException.class, () -> orderBook.getTotalSizeForLevel('B', 0));
 
