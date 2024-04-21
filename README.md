@@ -3,8 +3,8 @@
 # Part A
 ## Requirements
 
-A limit order book stores customer orders on a price time priority basis.
-The highest bid and lowest offer are considered "best" with all other orders stacked in price levels behind. In this test, the best order is considered to be at level 1.
+*A limit order book stores customer orders on a price time priority basis. The highest bid and lowest offer are considered
+"best" with all other orders stacked in price levels behind. In this test, the best order is considered to be at level 1.*
 
 - Given an Order, add it to the OrderBook (order additions are expected to occur extremely frequently)
 - Given an order id, remove an Order from the OrderBook (order deletions are expected to occur at approximately 60% of the rate of order additions)
@@ -13,29 +13,50 @@ The highest bid and lowest offer are considered "best" with all other orders sta
 - Given a side and a level return the total size available for that level
 - Given a side return all the orders from that side of the book, in level- and time-order
 
+
 ## Design
 ### Order
-- Use of double may not accurately represent every price that could be entered into the order book, a form of scaled decimal is recommended
-- An enum could better represent side to avoid checking for invalid characters
-- Used record class for sake of brevity to represent order
+- Use of double may not accurately represent every price that could be entered into the order book, a form of scaled decimal is recommended.
+- An enum could better represent side to avoid checking for invalid characters.
+- I have used a record class for sake of brevity.
+- Practically, a long representation is big enough to represent total order book volume.
  
 ### OrderBook
-I chose a sorted heap structure with a sequence representing each level. My initial consideration was a PriorityQueue but does not guarantee iteration ordering
+I chose a sorted heap structure with a sequence representing each level. My initial consideration was a PriorityQueue but
+that does not guarantee iteration ordering
 
-Style wise I default to using final for method parameters, just a safety measure to force avoidance of reassignment side effects within the implementation
+Style wise I default to using final for method parameters, just a safety measure to force avoidance of reassignment side
+effects within the implementation
+
+As it stands the OrderBook would be intended to run from a single thread. Data that is exposed is not deep copied.
+
+## Tests
+I haven't yet added any concurrency testing.
+
+A basic JMH benchmark has been created, which typically takes 25 mins to run.
 
 # Part B
 
-Please suggest (but do not implement) modifications or additions to the Order and/or OrderBook classes to make them better suited to support real-life, latency-sensitive trading operations.
+*Please suggest (but do not implement) modifications or additions to the Order and/or OrderBook classes to make them better
+suited to support real-life, latency-sensitive trading operations.*
+
+Allow order sizes to be directly mutated, avoiding object creation / replacements. Utilisng another hashmap would allow for
+O(1) order updates.
 
 Reduce object creation to attempt to achieve steady state memory.
-Some different approaches
+Some different approaches:
 - Object Pooling
 - Collapse data structures into a new single collection class
 - Use primitive arrays for storage
-- Avoid all autoboxing
+- Avoid all autoboxing using primitives
+- Populate the entire order book for all expected levels, use flags to control whether orders are visible or not. No object deletion
+- Flyweights around order messages to directly use the buffers allocated on I/O boundaries, e.g. [SBE](https://github.com/real-logic/simple-binary-encoding/wiki/Sbe-Tool-Guide)
+- Examine [Agrona](https://github.com/real-logic/agrona) data structure applicability
 
-Allow order sizes to be directly mutated, avoiding object creation and 
+On concurrency, basic synchronisation is used. Depending on access patterns more sophisticated lock free methods could be
+used, requiring more development time and complexity. 
+
+
 
 # JMH Benchmark
 Only a basic test run for adds, would need full public interface coverage.

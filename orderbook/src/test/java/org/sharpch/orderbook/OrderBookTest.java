@@ -5,8 +5,10 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,10 +17,13 @@ public class OrderBookTest {
 
     private OrderBook orderBook;
 
-    private static class OrderListMatcher extends TypeSafeMatcher<List<Order>> {
+    /**
+     * Custom matcher to test equivalence of order lists based on order ids
+     */
+    private static class OrderListIdMatcher extends TypeSafeMatcher<List<Order>> {
         private final List<Order> expected;
 
-        public OrderListMatcher(final List<Order> expected) {
+        public OrderListIdMatcher(final List<Order> expected) {
             this.expected = expected;
         }
 
@@ -63,8 +68,50 @@ public class OrderBookTest {
         }
         System.out.println(orderBook.getOrdersForSide('B'));
         System.out.println(orderBook.getOrdersForSide('S'));
-
     }
+
+    public static boolean isSorted(List<Order> orders, Comparator<Order> orderComparator) {
+        if (orders.isEmpty() || orders.size() == 1) {
+            return true;
+        }
+
+        Iterator<Order> iter = orders.iterator();
+        Order current, previous = iter.next();
+        while (iter.hasNext()) {
+            current = iter.next();
+            if (orderComparator.compare(previous, current) > 0) {
+                return false;
+            }
+            previous = current;
+        }
+        return true;
+    }
+
+    private static class OrderPriceComparator implements Comparator<Order> {
+        // Whilst just used for testing could move to Order
+        @Override
+        public int compare(final Order firstOrder, final Order secondOrder) {
+            return Double.compare(firstOrder.price(), secondOrder.price());
+        }
+    }
+
+
+    @Test
+    public void testOrderBookIsSorted() {
+        // Create 1000 random orders with 10 different prices and 10 different sizes
+        for (long id=1; id< 1000 ; id++) {
+            Order randomOrder = new Order(id,
+                    ThreadLocalRandom.current().nextBoolean() ? 'B' : 'S',
+                    ThreadLocalRandom.current().nextLong(1, 10 ),
+                    ThreadLocalRandom.current().nextLong(1, 10));
+            orderBook.addOrder(randomOrder);
+        }
+        List<Order> buys = orderBook.getOrdersForSide('B');
+        assertTrue(isSorted(buys, new OrderPriceComparator()));
+        List<Order> sells = orderBook.getOrdersForSide('S');
+        assertTrue(isSorted(sells, new OrderPriceComparator().reversed()));
+    }
+
 
     @Test
     public void testAddOrder() {
@@ -101,13 +148,13 @@ public class OrderBookTest {
 
         Order oldBuyOrder = orderBook.updateOrderSize(5, 25);
         assertEquals(5, oldBuyOrder.size());
-        assertThat(orderBook.getOrdersForSide('B'), new OrderListMatcher(buys));
-        assertThat(orderBook.getOrdersForSide('S'), new OrderListMatcher(sells));
+        assertThat(orderBook.getOrdersForSide('B'), new OrderListIdMatcher(buys));
+        assertThat(orderBook.getOrdersForSide('S'), new OrderListIdMatcher(sells));
 
         Order oldSellOrder = orderBook.updateOrderSize(15, 55);
         assertEquals(15, oldSellOrder.size());
-        assertThat(orderBook.getOrdersForSide('B'), new OrderListMatcher(buys));
-        assertThat(orderBook.getOrdersForSide('S'), new OrderListMatcher(sells));
+        assertThat(orderBook.getOrdersForSide('B'), new OrderListIdMatcher(buys));
+        assertThat(orderBook.getOrdersForSide('S'), new OrderListIdMatcher(sells));
     }
 
     @Test
@@ -178,7 +225,6 @@ public class OrderBookTest {
     }
 
     @Test
-
     public void testGetOrdersForBuys() {
         assertThrows(IllegalArgumentException.class, () -> orderBook.getOrdersForSide('X'));
 
@@ -199,4 +245,6 @@ public class OrderBookTest {
 
         System.out.println(sellOrders);
     }
+
+
 }
