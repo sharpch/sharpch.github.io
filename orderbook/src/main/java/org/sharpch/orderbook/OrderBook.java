@@ -24,7 +24,7 @@ public class OrderBook {
      * Use an OrderLevel to be placed in a sorted order book.
      * By using a LinkedHashMap we maintain insertion order, including replacements for the same key
      */
-    private final static class OrderLevel {
+    private static final class OrderLevel {
         private final SequencedMap<Long, Order> ordersById = new LinkedHashMap<>();
         private long total = 0; // Keep a total for faster retrieval
         final double price;
@@ -172,7 +172,7 @@ public class OrderBook {
      * @throws IllegalArgumentException for invalid side or negative level
      */
     public synchronized long getTotalSizeForLevel(final char side, final int level) {
-        if (level < 0) {
+        if (level < 1) {
             throw new IllegalArgumentException("Level must not be negative [" + level + "]");
         }
         SortedMap<Double, OrderLevel> orderSideMap;
@@ -193,7 +193,7 @@ public class OrderBook {
         List<Order> orderListForSide = new ArrayList<>(100);
         SortedMap<Double, OrderLevel> orderSideMap = getOrderSideMapForSide(side);
 
-        orderSideMap.values().forEach((orderLevel) -> orderListForSide.addAll(orderLevel.getOrders()));
+        orderSideMap.values().forEach(orderLevel -> orderListForSide.addAll(orderLevel.getOrders()));
 
         return orderListForSide;
     }

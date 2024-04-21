@@ -13,7 +13,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class OrderBookTest {
+class OrderBookTest {
 
     private OrderBook orderBook;
 
@@ -100,7 +100,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testOrderBookIsSorted() {
+    void testOrderBookIsSorted() {
         // Create random orders with different sides, 10 different prices and 10 different sizes
         for (long id = 1; id < 10000; id++) {
             Order randomOrder = new Order(id,
@@ -116,7 +116,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testAddOrder() {
+    void testAddOrder() {
         Order buyOrder = new Order(2, 'B', 60.6, 600);
         orderBook.addOrder(buyOrder);
         assertEquals(1, orderBook.getOrdersForSide('B').size());
@@ -127,7 +127,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testRemoveOrder() {
+    void testRemoveOrder() {
         populateOrderBook(10);
         Order buyOrder = orderBook.removeOrder(5);
         assertEquals(5, buyOrder.id());
@@ -143,7 +143,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testUpdateSize() {
+    void testUpdateSize() {
         populateOrderBook(10);
         List<Order> buys = orderBook.getOrdersForSide('B');
         List<Order> sells = orderBook.getOrdersForSide('S');
@@ -162,10 +162,11 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testGetPriceForSideLevel() {
+    void testGetPriceForSideLevel() {
         // Args
         assertThrows(IllegalArgumentException.class, () -> orderBook.getPriceForSideLevel('X', 1));
         assertThrows(IllegalArgumentException.class, () -> orderBook.getPriceForSideLevel('B', 0));
+
         // Can't find level
         assertTrue(Double.isNaN(orderBook.getPriceForSideLevel('B', 1)));
 
@@ -177,7 +178,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testGetTotalSizeForLevel() {
+    void testGetTotalSizeForLevel() {
         assertThrows(IllegalArgumentException.class, () -> orderBook.getTotalSizeForLevel('X', 1));
         assertThrows(IllegalArgumentException.class, () -> orderBook.getTotalSizeForLevel('B', 0));
 
@@ -211,7 +212,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testGetOrdersForSells() {
+    void testGetOrdersForSells() {
         // We expect sell orders to have their highest price at the top of the order book
         Order sellOrder1 = new Order(1, 'S', 50.0, 100);
         Order sellOrder2 = new Order(2, 'S', 50.0, 150);
@@ -229,7 +230,7 @@ public class OrderBookTest {
     }
 
     @Test
-    public void testGetOrdersForBuys() {
+    void testGetOrdersForBuys() {
         assertThrows(IllegalArgumentException.class, () -> orderBook.getOrdersForSide('X'));
 
         // We expect sell orders to have their highest price levels at the top of the order book
