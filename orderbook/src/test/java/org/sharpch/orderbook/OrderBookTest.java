@@ -128,15 +128,23 @@ class OrderBookTest {
 
     @Test
     void testRemoveOrder() {
-        populateOrderBook(10);
-        Order buyOrder = orderBook.removeOrder(5);
-        assertEquals(5, buyOrder.id());
+        populateOrderBook(4);
 
-        Order sellOrder = orderBook.removeOrder(15);
-        assertEquals(15, sellOrder.id());
+        long buyLevelTotal1 = orderBook.getTotalSizeForLevel('B', 1);
+        Order buyOrder = orderBook.removeOrder(1);
+        long buyLevelTotal2 = orderBook.getTotalSizeForLevel('B', 1);
 
-        assertEquals(9, orderBook.getOrdersForSide('B').size());
-        assertEquals(9, orderBook.getOrdersForSide('S').size());
+        assertEquals(1, buyOrder.id());
+        assertEquals(buyLevelTotal1 - buyOrder.size(), buyLevelTotal2);
+        assertEquals(3, orderBook.getOrdersForSide('B').size());
+
+        long sellLevelTotal1 = orderBook.getTotalSizeForLevel('S', 2);
+        Order sellOrder = orderBook.removeOrder(6);
+        long sellLevelTotal2 = orderBook.getTotalSizeForLevel('S', 2);
+
+        assertEquals(6, sellOrder.id());
+        assertEquals(sellLevelTotal1 - sellOrder.size(), sellLevelTotal2);
+        assertEquals(3, orderBook.getOrdersForSide('S').size());
 
         Order noOrder = orderBook.removeOrder(21);
         assertNull(noOrder);

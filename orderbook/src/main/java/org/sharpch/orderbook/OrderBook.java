@@ -42,7 +42,11 @@ public class OrderBook {
         }
 
         private Order removeOrder(final long id) {
-            return ordersById.remove(id);
+            Order order =  ordersById.remove(id);
+            if(order != null) {
+                total -= order.size();
+            }
+            return order;
         }
 
         private Order getOrder(final long id) {
