@@ -1,7 +1,7 @@
 package org.sharpch.orderbook;
 
 /**
- * For brevity just use an immutable record
+ * For brevity just use an immutable record.
  */
 public record Order(long id, char side, double price, long size) {
     /**

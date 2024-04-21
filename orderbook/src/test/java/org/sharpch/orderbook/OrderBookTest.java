@@ -18,7 +18,7 @@ public class OrderBookTest {
     private OrderBook orderBook;
 
     /**
-     * Custom matcher to test equivalence of order lists based on order ids
+     * Custom matcher to test equivalence of order lists based upon their order ids
      */
     private static class OrderListIdMatcher extends TypeSafeMatcher<List<Order>> {
         private final List<Order> expected;
@@ -39,13 +39,15 @@ public class OrderBookTest {
                 // Access elements from both lists using their iterators
                 Order actualOrder = actualOrders.next();
                 Order expectedOrder = expectedOrders.next();
-                if (actualOrder.id() != expectedOrder.id()) return false;
+                if (actualOrder.id() != expectedOrder.id()) {
+                    return false;
+                }
             }
             return true;
         }
 
         @Override
-        public void describeTo(Description description) {
+        public void describeTo(final Description description) {
             description.appendText("orders in the same order as ").appendValue(expected);
         }
     }
@@ -60,7 +62,9 @@ public class OrderBookTest {
             // ensure 2 orders at each level with different sizes
             // prices will step up in twos 1, 3, 7 ...
             double price = id;
-            if (id % 2 == 0) price = price - 1.0;
+            if (id % 2 == 0) {
+                price = price - 1.0;
+            }
             Order buyOrder = new Order(id, 'B', price, id);
             orderBook.addOrder(buyOrder);
             Order sellOrder = new Order(id + size, 'S', price + size, id + size);
@@ -70,7 +74,7 @@ public class OrderBookTest {
         System.out.println(orderBook.getOrdersForSide('S'));
     }
 
-    public static boolean isSorted(List<Order> orders, Comparator<Order> orderComparator) {
+    private static boolean isSorted(final List<Order> orders, final Comparator<Order> orderComparator) {
         if (orders.isEmpty() || orders.size() == 1) {
             return true;
         }
@@ -150,6 +154,8 @@ public class OrderBookTest {
         assertEquals(15, oldSellOrder.size());
         assertThat(orderBook.getOrdersForSide('B'), new OrderListIdMatcher(buys));
         assertThat(orderBook.getOrdersForSide('S'), new OrderListIdMatcher(sells));
+
+        assertNull(orderBook.updateOrderSize(21, 25));
     }
 
     @Test

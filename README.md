@@ -20,6 +20,7 @@
 - An enum could better represent side to avoid checking for invalid characters.
 - I have used a record class for sake of brevity.
 - Practically, a long representation is big enough to represent total order book volume.
+- Would benefit from IllegalArgument exceptions for  id > 0, side validation, -ve size, -ve price
  
 ### OrderBook
 I chose a sorted heap structure with a sequence representing each level. My initial consideration was a PriorityQueue but

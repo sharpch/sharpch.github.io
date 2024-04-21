@@ -26,7 +26,7 @@ public class OrderBook {
         private long total = 0; // Keep a total for faster retrieval
         final double price;
 
-        private OrderLevel(double price) {
+        private OrderLevel(final double price) {
             this.price = price;
         }
 
@@ -38,11 +38,11 @@ public class OrderBook {
             total += order.size();
         }
 
-        private Order removeOrder(long id) {
+        private Order removeOrder(final long id) {
             return ordersById.remove(id);
         }
 
-        private Order getOrder(long id) {
+        private Order getOrder(final long id) {
             return ordersById.get(id);
         }
 
@@ -64,8 +64,11 @@ public class OrderBook {
      */
     public synchronized void addOrder(final Order order) {
         char side = order.side();
-        if (side == 'B') addOrderToOrderBookSide(order, buyOrders, orderLevelsById);
-        else addOrderToOrderBookSide(order, sellOrders, orderLevelsById);
+        if (side == 'B') {
+            addOrderToOrderBookSide(order, buyOrders, orderLevelsById);
+        } else {
+            addOrderToOrderBookSide(order, sellOrders, orderLevelsById);
+        }
     }
 
     private void addOrderToOrderBookSide(final Order order, final SortedMap<Double, OrderLevel> orderBookSide, final Map<Long, OrderLevel> ordersById) {
@@ -114,13 +117,17 @@ public class OrderBook {
 
     private SortedMap<Double, OrderLevel> getOrderSideMapForSide(final char side) {
         SortedMap<Double, OrderLevel> orderSideMap;
-        if (side == 'B') orderSideMap = buyOrders;
-        else if (side == 'S') orderSideMap = sellOrders;
-        else throw new IllegalArgumentException("No such side [" + side + "]");
+        if (side == 'B') {
+            orderSideMap = buyOrders;
+        } else if (side == 'S') {
+            orderSideMap = sellOrders;
+        } else {
+            throw new IllegalArgumentException("No such side [" + side + "]");
+        }
         return orderSideMap;
     }
 
-    private OrderLevel getOrderLevelForLevel(final int level, SortedMap<Double, OrderLevel> orderSideMap) {
+    private OrderLevel getOrderLevelForLevel(final int level, final SortedMap<Double, OrderLevel> orderSideMap) {
         if (level < 1) {
             throw new IllegalArgumentException("Level [" + level + "] must be > 0");
         }
@@ -142,8 +149,11 @@ public class OrderBook {
      */
     public double getPriceForSideLevel(final char side, final int level) {
         OrderLevel orderLevel = getOrderLevelForLevel(level, getOrderSideMapForSide(side));
-        if (orderLevel != null) return orderLevel.price;
-        else return Double.NaN;
+        if (orderLevel != null) {
+            return orderLevel.price;
+        } else {
+            return Double.NaN;
+        }
     }
 
 
@@ -156,7 +166,9 @@ public class OrderBook {
      * @throws IllegalArgumentException for invalid side or negative level
      */
     public synchronized long getTotalSizeForLevel(final char side, final int level) {
-        if (level < 0) throw new IllegalArgumentException("Level must not be negative [" + level + "]");
+        if (level < 0) {
+            throw new IllegalArgumentException("Level must not be negative [" + level + "]");
+        }
         SortedMap<Double, OrderLevel> orderSideMap;
         orderSideMap = getOrderSideMapForSide(side);
         OrderLevel orderLevel = getOrderLevelForLevel(level, orderSideMap);
@@ -171,7 +183,7 @@ public class OrderBook {
      *
      * @throws IllegalArgumentException for invalid side
      */
-    public List<Order> getOrdersForSide(char side) {
+    public List<Order> getOrdersForSide(final char side) {
         List<Order> orderListForSide = new ArrayList<>(100);
         SortedMap<Double, OrderLevel> orderSideMap = getOrderSideMapForSide(side);
 
@@ -179,5 +191,4 @@ public class OrderBook {
 
         return orderListForSide;
     }
-
 }
