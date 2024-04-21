@@ -146,7 +146,10 @@ class OrderBookTest {
         assertEquals(sellLevelTotal1 - sellOrder.size(), sellLevelTotal2);
         assertEquals(3, orderBook.getOrdersForSide('S').size());
 
-        Order noOrder = orderBook.removeOrder(21);
+        // Test second removal
+        Order noOrder = orderBook.removeOrder(1);
+        assertNull(noOrder);
+        noOrder = orderBook.removeOrder(6);
         assertNull(noOrder);
     }
 

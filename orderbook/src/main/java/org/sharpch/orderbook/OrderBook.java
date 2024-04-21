@@ -101,6 +101,7 @@ public class OrderBook {
         Order order = null;
         if (orderLevel != null) {
             order = orderLevel.removeOrder(id);
+            orderLevelsById.remove(id);
         }
         return order;
     }
