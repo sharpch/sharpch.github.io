@@ -5,11 +5,14 @@ import java.util.*;
 /**
  * Given an Order, add it to the OrderBook (order additions are expected to occur extremely frequently)
  * <p>
- * Given an order id, remove an Order from the OrderBook (order deletions are expected to occur at approximately 60% of the rate of order additions)
+ * Given an order id, remove an Order from the OrderBook (order deletions are expected to occur at approximately 60% of
+ * the rate of order additions)
  * <p>
- * Given an order id and a new size, modify an existing order in the book to use the new size (size modifications do not affect time priority)
+ * Given an order id and a new size, modify an existing order in the book to use the new size (size modifications do not
+ * affect time priority)
  * <p>
- * Given a side and a level (an integer value >0) return the price for that level (where level 1 represents the best price for a given side). For example, given side=B and level=2 return the second best bid price
+ * Given a side and a level (an integer value >0) return the price for that level (where level 1 represents the best
+ * price for a given side). For example, given side=B and level=2 return the second best bid price
  * <p>
  * Given a side and a level return the total size available for that level
  * <p>
@@ -71,7 +74,9 @@ public class OrderBook {
         }
     }
 
-    private void addOrderToOrderBookSide(final Order order, final SortedMap<Double, OrderLevel> orderBookSide, final Map<Long, OrderLevel> ordersById) {
+    private void addOrderToOrderBookSide(final Order order,
+                                         final SortedMap<Double, OrderLevel> orderBookSide,
+                                         final Map<Long, OrderLevel> ordersById) {
         OrderLevel orderLevel = orderBookSide.get(order.price());
         if (orderLevel == null) {
             orderLevel = new OrderLevel(order.price());
@@ -87,7 +92,7 @@ public class OrderBook {
      *
      * @return removed order from order book for given id, else null
      */
-    public synchronized Order removeOrder(long id) {
+    public synchronized Order removeOrder(final long id) {
         OrderLevel orderLevel = orderLevelsById.get(id);
         Order order = null;
         if (orderLevel != null) {
@@ -142,7 +147,8 @@ public class OrderBook {
     }
 
     /**
-     * Given a side and a level (an integer value >0) return the price for that level (where level 1 represents the best price for a given side). For example, given side=B and level=2 return the second best bid price
+     * Given a side and a level (an integer value >0) return the price for that level (where level 1 represents the best
+     * price for a given side). For example, given side=B and level=2 return the second best bid price
      *
      * @return price for the given level if it exists, else Double.NaN
      * @throws IllegalArgumentException for a bad side or level < 1
