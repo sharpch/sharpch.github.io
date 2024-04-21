@@ -95,15 +95,11 @@ public class OrderBookTest {
         }
     }
 
-
     @Test
     public void testOrderBookIsSorted() {
         // Create 1000 random orders with 10 different prices and 10 different sizes
-        for (long id=1; id< 1000 ; id++) {
-            Order randomOrder = new Order(id,
-                    ThreadLocalRandom.current().nextBoolean() ? 'B' : 'S',
-                    ThreadLocalRandom.current().nextLong(1, 10 ),
-                    ThreadLocalRandom.current().nextLong(1, 10));
+        for (long id = 1; id < 1000; id++) {
+            Order randomOrder = new Order(id, ThreadLocalRandom.current().nextBoolean() ? 'B' : 'S', ThreadLocalRandom.current().nextLong(1, 10), ThreadLocalRandom.current().nextLong(1, 10));
             orderBook.addOrder(randomOrder);
         }
         List<Order> buys = orderBook.getOrdersForSide('B');
@@ -111,7 +107,6 @@ public class OrderBookTest {
         List<Order> sells = orderBook.getOrdersForSide('S');
         assertTrue(isSorted(sells, new OrderPriceComparator().reversed()));
     }
-
 
     @Test
     public void testAddOrder() {
@@ -245,6 +240,4 @@ public class OrderBookTest {
 
         System.out.println(sellOrders);
     }
-
-
 }
