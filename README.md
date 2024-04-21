@@ -36,6 +36,9 @@ I haven't yet added any concurrency testing.
 
 A basic JMH benchmark has been created, which typically takes 25 mins to run.
 
+## Security
+Interesting plugin available for [Snyk](https://docs.snyk.io/integrate-with-snyk/use-snyk-in-your-ide/jetbrains-plugins)
+
 # Part B
 
 *Please suggest (but do not implement) modifications or additions to the Order and/or OrderBook classes to make them better
