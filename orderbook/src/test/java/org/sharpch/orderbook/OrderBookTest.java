@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class OrderBookTest {
 
@@ -121,14 +122,33 @@ class OrderBookTest {
 
     @Test
     void testAddOrder() {
-        // todo test totals  add more orders, test sequence
-        Order buyOrder = new Order(1, 'B', 60.6, 600);
-        orderBook.addOrder(buyOrder);
-        assertEquals(1, orderBook.getOrdersForSide('B').size());
+        // Empty order book
+        assertEquals(0, orderBook.getOrdersForSide('B').size());
+        assertEquals(0, orderBook.getOrdersForSide('S').size());
 
-        Order sellOrder = new Order(2, 'S', 50.01, 100);
-        orderBook.addOrder(sellOrder);
+        // Validate add increases size and totals
+        orderBook.addOrder(new Order(1, 'B', 60.6, 600));
+        assertEquals(1, orderBook.getOrdersForSide('B').size());
+        assertEquals(600, orderBook.getTotalSizeForLevel('B',1));
+        orderBook.addOrder(new Order(2, 'B', 60.6, 400));
+        assertEquals(2, orderBook.getOrdersForSide('B').size());
+        assertEquals(1000, orderBook.getTotalSizeForLevel('B',1));
+        orderBook.addOrder(new Order(3, 'B', 50.6, 200));
+        assertEquals(3, orderBook.getOrdersForSide('B').size());
+        assertEquals(200, orderBook.getTotalSizeForLevel('B',1));
+        assertEquals(1000, orderBook.getTotalSizeForLevel('B',2));
+
+        // Validate add increases size and totals
+        orderBook.addOrder(new Order(10, 'S', 50.01, 100));
         assertEquals(1, orderBook.getOrdersForSide('S').size());
+        assertEquals(100, orderBook.getTotalSizeForLevel('S',1));
+        orderBook.addOrder(new Order(11, 'S', 50.01, 200));
+        assertEquals(2, orderBook.getOrdersForSide('S').size());
+        assertEquals(300, orderBook.getTotalSizeForLevel('S',1));
+        orderBook.addOrder(new Order(11, 'S', 70.01, 50));
+        assertEquals(3, orderBook.getOrdersForSide('S').size());
+        assertEquals(50, orderBook.getTotalSizeForLevel('S',1));
+        assertEquals(300, orderBook.getTotalSizeForLevel('S',2));
     }
 
     @Test
