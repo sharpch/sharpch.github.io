@@ -101,6 +101,10 @@ class OrderBookTest {
 
     @Test
     void testOrderBookIsSorted() {
+        // Empty order book
+        assertTrue(isSorted(orderBook.getOrdersForSide('S'), new OrderPriceComparator().reversed()));
+        assertTrue(isSorted(orderBook.getOrdersForSide('B'), new OrderPriceComparator().reversed()));
+
         // Create random orders with different sides, 10 different prices and 10 different sizes
         for (long id = 1; id < 10000; id++) {
             Order randomOrder = new Order(id,
@@ -129,6 +133,10 @@ class OrderBookTest {
 
     @Test
     void testRemoveOrder() {
+        // Empty order book
+        Order order = orderBook.removeOrder(1);
+        assertNull(order);
+
         populateOrderBook(4);
 
         long buyLevelTotal1 = orderBook.getTotalSizeForLevel('B', 1);
@@ -156,21 +164,30 @@ class OrderBookTest {
 
     @Test
     void testUpdateSize() {
-        // todo test totals
+        // Empty order book
+        assertNull(orderBook.updateOrderSize(1, 25));
+
         populateOrderBook(10);
         List<Order> buys = orderBook.getOrdersForSide('B');
         List<Order> sells = orderBook.getOrdersForSide('S');
 
+        // Validate buy size replacements, ids unchanged in order
+        assertEquals(11, orderBook.getTotalSizeForLevel('B', 3));
         Order oldBuyOrder = orderBook.updateOrderSize(5, 25);
         assertEquals(5, oldBuyOrder.size());
+        assertEquals(31, orderBook.getTotalSizeForLevel('B', 3));
         assertThat(orderBook.getOrdersForSide('B'), new OrderListIdMatcher(buys));
         assertThat(orderBook.getOrdersForSide('S'), new OrderListIdMatcher(sells));
 
+        // Validate sell size replacements, ids unchanged in Order
+        assertEquals(31, orderBook.getTotalSizeForLevel('S', 3));
         Order oldSellOrder = orderBook.updateOrderSize(15, 55);
         assertEquals(15, oldSellOrder.size());
+        assertEquals(71, orderBook.getTotalSizeForLevel('S', 3));
         assertThat(orderBook.getOrdersForSide('B'), new OrderListIdMatcher(buys));
         assertThat(orderBook.getOrdersForSide('S'), new OrderListIdMatcher(sells));
 
+        // Unknown id
         assertNull(orderBook.updateOrderSize(21, 25));
     }
 
@@ -180,7 +197,7 @@ class OrderBookTest {
         assertThrows(IllegalArgumentException.class, () -> orderBook.getPriceForSideLevel('X', 1));
         assertThrows(IllegalArgumentException.class, () -> orderBook.getPriceForSideLevel('B', 0));
 
-        // Can't find level
+        // Empty order book
         assertTrue(Double.isNaN(orderBook.getPriceForSideLevel('B', 1)));
 
         populateOrderBook(4);
@@ -192,33 +209,34 @@ class OrderBookTest {
 
     @Test
     void testGetTotalSizeForLevel() {
+        // Args
         assertThrows(IllegalArgumentException.class, () -> orderBook.getTotalSizeForLevel('X', 1));
         assertThrows(IllegalArgumentException.class, () -> orderBook.getTotalSizeForLevel('B', 0));
 
+        // Empty order book
         assertEquals(0, orderBook.getTotalSizeForLevel('B', 1));
         assertEquals(0, orderBook.getTotalSizeForLevel('S', 1));
 
         Order sellOrder1 = new Order(1, 'S', 50.0, 100);
         Order sellOrder2 = new Order(2, 'S', 50.0, 150);
         Order sellOrder3 = new Order(3, 'S', 40.0, 20);
-
-        Order buyOrder1 = new Order(4, 'B', 60.0, 200);
-        Order buyOrder2 = new Order(5, 'B', 60.0, 300);
-        Order buyOrder3 = new Order(6, 'B', 50.0, 10);
-
         orderBook.addOrder(sellOrder1);
         orderBook.addOrder(sellOrder2);
         orderBook.addOrder(sellOrder3);
 
+        Order buyOrder1 = new Order(4, 'B', 60.0, 200);
+        Order buyOrder2 = new Order(5, 'B', 60.0, 300);
+        Order buyOrder3 = new Order(6, 'B', 50.0, 10);
         orderBook.addOrder(buyOrder1);
         orderBook.addOrder(buyOrder2);
-
         orderBook.addOrder(buyOrder3);
 
+        // Validate sell totals
         assertEquals(250, orderBook.getTotalSizeForLevel('S', 1));
         assertEquals(20, orderBook.getTotalSizeForLevel('S', 2));
         assertEquals(0, orderBook.getTotalSizeForLevel('S', 3));
 
+        // Validate buy totals
         assertEquals(10, orderBook.getTotalSizeForLevel('B', 1));
         assertEquals(500, orderBook.getTotalSizeForLevel('B', 2));
         assertEquals(0, orderBook.getTotalSizeForLevel('B', 3));
@@ -226,17 +244,22 @@ class OrderBookTest {
 
     @Test
     void testGetOrdersForSide() {
+        // Args
         assertThrows(IllegalArgumentException.class, () -> orderBook.getOrdersForSide('X'));
+
+        // Empty order book
+        assertEquals(0, orderBook.getOrdersForSide('S').size());
+        assertEquals(0, orderBook.getOrdersForSide('B').size());
 
         // We expect sell orders to have their highest price at the top of the order book
         Order sellOrder1 = new Order(1, 'S', 50.0, 100);
         Order sellOrder2 = new Order(2, 'S', 50.0, 150);
         Order sellOrder3 = new Order(3, 'S', 60.0, 200);
-
         orderBook.addOrder(sellOrder1);
         orderBook.addOrder(sellOrder2); // Same level but ordered after
         orderBook.addOrder(sellOrder3); // Should be at head
 
+        // Validate sell ordering
         List<Order> sellOrders = orderBook.getOrdersForSide('S');
         assertEquals(3, sellOrders.size());
         assertEquals(sellOrder3, sellOrders.get(0));
@@ -247,11 +270,11 @@ class OrderBookTest {
         Order buyOrder1 = new Order(1, 'B', 50.0, 100);
         Order buyOrder2 = new Order(2, 'B', 50.0, 150);
         Order buyOrder3 = new Order(3, 'B', 40.0, 200);
-
         orderBook.addOrder(buyOrder1);
         orderBook.addOrder(buyOrder2); // Same level but ordered after
         orderBook.addOrder(buyOrder3); // Should be at head
 
+        // Validate buy ordering
         List<Order> buyOrders = orderBook.getOrdersForSide('B');
         assertEquals(3, buyOrders.size());
         assertEquals(buyOrder3, buyOrders.get(0));
