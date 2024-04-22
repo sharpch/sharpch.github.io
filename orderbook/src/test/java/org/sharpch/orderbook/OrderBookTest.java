@@ -106,7 +106,7 @@ class OrderBookTest {
     }
 
     private static final Comparator<Order> PRICE_ORDER = new OrderPriceComparator();
-    private static final Comparator<Order> REVERSE_PRICE_ORDER = new OrderPriceComparator().reversed();
+    private static final Comparator<Order> REVERSE_PRICE_ORDER = PRICE_ORDER.reversed();
 
 
     @Test
