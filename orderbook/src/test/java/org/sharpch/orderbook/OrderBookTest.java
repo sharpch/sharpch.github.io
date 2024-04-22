@@ -12,14 +12,13 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class OrderBookTest {
 
     private OrderBook orderBook;
 
     /**
-     * Custom matcher to test equivalence of order lists based upon their order ids
+     * Matcher to test equivalence of order lists based upon their order ids
      */
     private static class OrderListIdMatcher extends TypeSafeMatcher<List<Order>> {
         private final List<Order> expected;
@@ -75,6 +74,9 @@ class OrderBookTest {
         System.out.println(orderBook.getOrdersForSide('S'));
     }
 
+    /**
+     * Test ordering of a list of orders based on the given price comparator
+     */
     private static boolean isSorted(final List<Order> orders, final Comparator<Order> orderComparator) {
         if (orders.isEmpty() || orders.size() == 1) {
             return true;
@@ -92,6 +94,9 @@ class OrderBookTest {
         return true;
     }
 
+    /**
+     * Compare orders based on their prices
+     */
     private static class OrderPriceComparator implements Comparator<Order> {
         // Whilst just used for testing could move to Order
         @Override
@@ -100,11 +105,15 @@ class OrderBookTest {
         }
     }
 
+    private static final Comparator<Order> PRICE_ORDER = new OrderPriceComparator();
+    private static final Comparator<Order> REVERSE_PRICE_ORDER = new OrderPriceComparator().reversed();
+
+
     @Test
     void testOrderBookIsSorted() {
         // Empty order book
-        assertTrue(isSorted(orderBook.getOrdersForSide('S'), new OrderPriceComparator().reversed()));
-        assertTrue(isSorted(orderBook.getOrdersForSide('B'), new OrderPriceComparator().reversed()));
+        assertTrue(isSorted(orderBook.getOrdersForSide('S'), REVERSE_PRICE_ORDER));
+        assertTrue(isSorted(orderBook.getOrdersForSide('B'), PRICE_ORDER));
 
         // Create random orders with different sides, 10 different prices and 10 different sizes
         for (long id = 1; id < 10000; id++) {
@@ -114,10 +123,12 @@ class OrderBookTest {
                     ThreadLocalRandom.current().nextLong(1, 10));
             orderBook.addOrder(randomOrder);
         }
+
+        // Validate sides are ordered
         List<Order> buys = orderBook.getOrdersForSide('B');
-        assertTrue(isSorted(buys, new OrderPriceComparator()));
+        assertTrue(isSorted(buys, PRICE_ORDER));
         List<Order> sells = orderBook.getOrdersForSide('S');
-        assertTrue(isSorted(sells, new OrderPriceComparator().reversed()));
+        assertTrue(isSorted(sells, REVERSE_PRICE_ORDER));
     }
 
     @Test
@@ -126,29 +137,39 @@ class OrderBookTest {
         assertEquals(0, orderBook.getOrdersForSide('B').size());
         assertEquals(0, orderBook.getOrdersForSide('S').size());
 
-        // Validate add increases size and totals
+        // Validate add buys increases size, totals, maintains order
         orderBook.addOrder(new Order(1, 'B', 60.6, 600));
         assertEquals(1, orderBook.getOrdersForSide('B').size());
-        assertEquals(600, orderBook.getTotalSizeForLevel('B',1));
+        assertEquals(600, orderBook.getTotalSizeForLevel('B', 1));
+        assertTrue(isSorted(orderBook.getOrdersForSide('B'), PRICE_ORDER));
+
         orderBook.addOrder(new Order(2, 'B', 60.6, 400));
         assertEquals(2, orderBook.getOrdersForSide('B').size());
-        assertEquals(1000, orderBook.getTotalSizeForLevel('B',1));
+        assertEquals(1000, orderBook.getTotalSizeForLevel('B', 1));
+        assertTrue(isSorted(orderBook.getOrdersForSide('B'), PRICE_ORDER));
+
         orderBook.addOrder(new Order(3, 'B', 50.6, 200));
         assertEquals(3, orderBook.getOrdersForSide('B').size());
-        assertEquals(200, orderBook.getTotalSizeForLevel('B',1));
-        assertEquals(1000, orderBook.getTotalSizeForLevel('B',2));
+        assertEquals(200, orderBook.getTotalSizeForLevel('B', 1));
+        assertEquals(1000, orderBook.getTotalSizeForLevel('B', 2));
+        assertTrue(isSorted(orderBook.getOrdersForSide('B'), PRICE_ORDER));
 
-        // Validate add increases size and totals
+        // Validate add sells increases size, totals, maintains order
         orderBook.addOrder(new Order(10, 'S', 50.01, 100));
         assertEquals(1, orderBook.getOrdersForSide('S').size());
-        assertEquals(100, orderBook.getTotalSizeForLevel('S',1));
+        assertEquals(100, orderBook.getTotalSizeForLevel('S', 1));
+        assertTrue(isSorted(orderBook.getOrdersForSide('S'), REVERSE_PRICE_ORDER));
+
         orderBook.addOrder(new Order(11, 'S', 50.01, 200));
         assertEquals(2, orderBook.getOrdersForSide('S').size());
-        assertEquals(300, orderBook.getTotalSizeForLevel('S',1));
+        assertEquals(300, orderBook.getTotalSizeForLevel('S', 1));
+        assertTrue(isSorted(orderBook.getOrdersForSide('S'), REVERSE_PRICE_ORDER));
+
         orderBook.addOrder(new Order(11, 'S', 70.01, 50));
         assertEquals(3, orderBook.getOrdersForSide('S').size());
-        assertEquals(50, orderBook.getTotalSizeForLevel('S',1));
-        assertEquals(300, orderBook.getTotalSizeForLevel('S',2));
+        assertEquals(50, orderBook.getTotalSizeForLevel('S', 1));
+        assertEquals(300, orderBook.getTotalSizeForLevel('S', 2));
+        assertTrue(isSorted(orderBook.getOrdersForSide('S'), REVERSE_PRICE_ORDER));
     }
 
     @Test
@@ -159,6 +180,7 @@ class OrderBookTest {
 
         populateOrderBook(4);
 
+        // Validate buy removes correct order, reduces totals, maintains order
         long buyLevelTotal1 = orderBook.getTotalSizeForLevel('B', 1);
         Order buyOrder = orderBook.removeOrder(1);
         long buyLevelTotal2 = orderBook.getTotalSizeForLevel('B', 1);
@@ -166,7 +188,9 @@ class OrderBookTest {
         assertEquals(1, buyOrder.id());
         assertEquals(buyLevelTotal1 - buyOrder.size(), buyLevelTotal2);
         assertEquals(3, orderBook.getOrdersForSide('B').size());
+        assertTrue(isSorted(orderBook.getOrdersForSide('B'), PRICE_ORDER));
 
+        // Validate sell removes correct order, reduces totals, maintains order
         long sellLevelTotal1 = orderBook.getTotalSizeForLevel('S', 2);
         Order sellOrder = orderBook.removeOrder(6);
         long sellLevelTotal2 = orderBook.getTotalSizeForLevel('S', 2);
@@ -174,6 +198,7 @@ class OrderBookTest {
         assertEquals(6, sellOrder.id());
         assertEquals(sellLevelTotal1 - sellOrder.size(), sellLevelTotal2);
         assertEquals(3, orderBook.getOrdersForSide('S').size());
+        assertTrue(isSorted(orderBook.getOrdersForSide('S'), REVERSE_PRICE_ORDER));
 
         // Test second removal
         Order noOrder = orderBook.removeOrder(1);
@@ -279,7 +304,7 @@ class OrderBookTest {
         orderBook.addOrder(sellOrder2); // Same level but ordered after
         orderBook.addOrder(sellOrder3); // Should be at head
 
-        // Validate sell ordering
+        // Validate sell ordering for level and insert sequence
         List<Order> sellOrders = orderBook.getOrdersForSide('S');
         assertEquals(3, sellOrders.size());
         assertEquals(sellOrder3, sellOrders.get(0));
@@ -294,7 +319,7 @@ class OrderBookTest {
         orderBook.addOrder(buyOrder2); // Same level but ordered after
         orderBook.addOrder(buyOrder3); // Should be at head
 
-        // Validate buy ordering
+        // Validate buy ordering for level and insert sequence
         List<Order> buyOrders = orderBook.getOrdersForSide('B');
         assertEquals(3, buyOrders.size());
         assertEquals(buyOrder3, buyOrders.get(0));
