@@ -43,7 +43,7 @@ public class OrderBook {
 
         private Order removeOrder(final long id) {
             Order order =  ordersById.remove(id);
-            if(order != null) {
+            if(order != null) { // test not really needed
                 total -= order.size();
             }
             return order;
@@ -112,7 +112,7 @@ public class OrderBook {
      *
      * @return original order for the given id if it exists, else null
      */
-    public Order updateOrderSize(final long id, final long size) {
+    public synchronized Order updateOrderSize(final long id, final long size) {
         OrderLevel orderLevel = orderLevelsById.get(id);
         Order order = null;
 
@@ -158,7 +158,7 @@ public class OrderBook {
      * @return price for the given level if it exists, else Double.NaN
      * @throws IllegalArgumentException for a bad side or level < 1
      */
-    public double getPriceForSideLevel(final char side, final int level) {
+    public synchronized double getPriceForSideLevel(final char side, final int level) {
         OrderLevel orderLevel = getOrderLevelForLevel(level, getOrderSideMapForSide(side));
         if (orderLevel != null) {
             return orderLevel.price;
@@ -194,7 +194,7 @@ public class OrderBook {
      *
      * @throws IllegalArgumentException for invalid side
      */
-    public List<Order> getOrdersForSide(final char side) {
+    public synchronized List<Order> getOrdersForSide(final char side) {
         List<Order> orderListForSide = new ArrayList<>(100);
         SortedMap<Double, OrderLevel> orderSideMap = getOrderSideMapForSide(side);
 
