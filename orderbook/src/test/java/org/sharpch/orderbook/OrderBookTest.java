@@ -117,11 +117,12 @@ class OrderBookTest {
 
     @Test
     void testAddOrder() {
-        Order buyOrder = new Order(2, 'B', 60.6, 600);
+        // todo test totals  add more orders, test sequence
+        Order buyOrder = new Order(1, 'B', 60.6, 600);
         orderBook.addOrder(buyOrder);
         assertEquals(1, orderBook.getOrdersForSide('B').size());
 
-        Order sellOrder = new Order(1, 'S', 50.01, 100);
+        Order sellOrder = new Order(2, 'S', 50.01, 100);
         orderBook.addOrder(sellOrder);
         assertEquals(1, orderBook.getOrdersForSide('S').size());
     }
@@ -155,6 +156,7 @@ class OrderBookTest {
 
     @Test
     void testUpdateSize() {
+        // todo test totals
         populateOrderBook(10);
         List<Order> buys = orderBook.getOrdersForSide('B');
         List<Order> sells = orderBook.getOrdersForSide('S');
@@ -223,7 +225,9 @@ class OrderBookTest {
     }
 
     @Test
-    void testGetOrdersForSells() {
+    void testGetOrdersForSide() {
+        assertThrows(IllegalArgumentException.class, () -> orderBook.getOrdersForSide('X'));
+
         // We expect sell orders to have their highest price at the top of the order book
         Order sellOrder1 = new Order(1, 'S', 50.0, 100);
         Order sellOrder2 = new Order(2, 'S', 50.0, 150);
@@ -238,27 +242,20 @@ class OrderBookTest {
         assertEquals(sellOrder3, sellOrders.get(0));
         assertEquals(sellOrder1, sellOrders.get(1));
         assertEquals(sellOrder2, sellOrders.get(2));
-    }
 
-    @Test
-    void testGetOrdersForBuys() {
-        assertThrows(IllegalArgumentException.class, () -> orderBook.getOrdersForSide('X'));
+        // We expect buy orders to have their highest price levels at the bottom of the order book
+        Order buyOrder1 = new Order(1, 'B', 50.0, 100);
+        Order buyOrder2 = new Order(2, 'B', 50.0, 150);
+        Order buyOrder3 = new Order(3, 'B', 40.0, 200);
 
-        // We expect sell orders to have their highest price levels at the top of the order book
-        Order sellOrder1 = new Order(1, 'B', 50.0, 100);
-        Order sellOrder2 = new Order(2, 'B', 50.0, 150);
-        Order sellOrder3 = new Order(3, 'B', 40.0, 200);
+        orderBook.addOrder(buyOrder1);
+        orderBook.addOrder(buyOrder2); // Same level but ordered after
+        orderBook.addOrder(buyOrder3); // Should be at head
 
-        orderBook.addOrder(sellOrder1);
-        orderBook.addOrder(sellOrder2); // Same level but ordered after
-        orderBook.addOrder(sellOrder3); // Should be at head
-
-        List<Order> sellOrders = orderBook.getOrdersForSide('B');
-        assertEquals(3, sellOrders.size());
-        assertEquals(sellOrder3, sellOrders.get(0));
-        assertEquals(sellOrder1, sellOrders.get(1));
-        assertEquals(sellOrder2, sellOrders.get(2));
-
-        System.out.println(sellOrders);
+        List<Order> buyOrders = orderBook.getOrdersForSide('B');
+        assertEquals(3, buyOrders.size());
+        assertEquals(buyOrder3, buyOrders.get(0));
+        assertEquals(buyOrder1, buyOrders.get(1));
+        assertEquals(buyOrder2, buyOrders.get(2));
     }
 }
