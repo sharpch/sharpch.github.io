@@ -57,6 +57,9 @@ Allow order sizes to be directly mutated, avoiding object creation / replacement
 mutable objects. These would require memory barriers, with atomic or synchronized access. A hashmap would allow for
 best case O(1) order updates.
 
+Look at alternate data structures for performance / concurrency concerns. E.g. [ConcurrentSkipListMap](https://www.baeldung.com/cs/skip-list-vs-binary-search-tree)
+and consider probabilistic vs deterministic properties based on usage patterns. Lots of testing required.
+
 Reduce object creation to attempt to achieve steady state memory.
 Some different approaches:
 
