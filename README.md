@@ -54,7 +54,7 @@ better
 suited to support real-life, latency-sensitive trading operations.*
 
 Allow order sizes to be directly mutated, avoiding object creation / replacements. Threading becomes a consideration for
-mutable objects. These would require memory barriers, with volatile or synchronized access. A hashmap would allows for
+mutable objects. These would require memory barriers, with atomic or synchronized access. A hashmap would allow for
 best case O(1) order updates.
 
 Reduce object creation to attempt to achieve steady state memory.
@@ -70,8 +70,8 @@ Some different approaches:
   e.g. [SBE](https://github.com/real-logic/simple-binary-encoding/wiki/Sbe-Tool-Guide)
 - Examine [Agrona](https://github.com/real-logic/agrona) data structure applicability
 
-On concurrency, basic synchronisation is used. Depending on access patterns more sophisticated lock free methods could
-be used, requiring more development time and complexity.
+On concurrency, basic synchronisation is used. Depending on access patterns and signalling requirements, more
+sophisticated lock free patterns could be used, requiring more development time and complexity.
 
 # JMH Benchmark
 
